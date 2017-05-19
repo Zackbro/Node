@@ -11,6 +11,8 @@ var localStrategy = require('passport-local').Strategy;
 
 var config = require('./config');
 
+
+var url = 'mongodb://localhost:27017/conFusion';
 mongoose.connect(config.mongoUrl);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -48,6 +50,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+
+// Secure traffic only
+app.all('*', function(req, res, next){
+    console.log('req start: ',req.secure, req.hostname, req.url, app.get('port'));
+  if (req.secure) {
+    return next();
+  };
+
+ res.redirect('https://'+req.hostname+':'+app.get('secPort')+req.url);
+});
 
 // 加入dish
 app.use('/dishes', dishRouter);
